@@ -414,13 +414,18 @@ module StateMachine
             def attributes=(new_attributes, *args)
               if new_record? && !@initialized_state_machines
                 @initialized_state_machines = true
-                
-                if new_attributes
+
+                ignore = if new_attributes
                   attributes = new_attributes.dup
                   attributes.stringify_keys!
-                  ignore = remove_attributes_protected_from_mass_assignment(attributes).keys
+
+                  if respond_to? :sanitize_for_mass_assignment
+                    sanitize_for_mass_assignment(attributes).keys
+                  else
+                    remove_attributes_protected_from_mass_assignment(attributes).keys
+                  end
                 else
-                  ignore = []
+                  []
                 end
                 
                 initialize_state_machines(:dynamic => false, :ignore => ignore)
